@@ -253,16 +253,7 @@ results.csv
 
 This file records the sequences evaluated during BO and the corresponding scores.
 
-### Saved state files
 
-The same folder also contains files for restoring or inspecting the run state:
-
-```text
-torch_rd_state.pt
-random_rd_state.pkl
-np_rd_state.pkl
-optim.pkl
-```
 
 
 ## 9. Issues Encountered
