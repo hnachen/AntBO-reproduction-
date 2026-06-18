@@ -1,6 +1,6 @@
 # AntBO Reproduction
 
-This README records my current progress reproducing AntBO with Absolut on the antibody-antigen benchmark.
+This README records current progress reproducing AntBO with Absolut on the antibody-antigen benchmark.
 
 The current goal is:
 
