@@ -64,13 +64,6 @@ max_iters: 200
 save_path: /mnt/data0/shared/AntBO/HEBO/AntBO/results
 ```
 
-The Absolut path should point to:
-
-```yaml
-path: /mnt/data0/shared/AntBO/Absolut
-```
-
-One important fix was changing `save_path` from a relative path to an absolute path. Otherwise, after Absolut is called, results may be saved under the wrong directory.
 
 ## 3. Antigen Lists
 
