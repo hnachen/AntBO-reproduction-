@@ -1,54 +1,62 @@
-# AntBO-reproduction
-## Goal 
-The reproduction is for running AntBO with Absolut on the antibody=antigen benchmark. 
+# AntBO Reproduction
 
-Current Target:
+This README records my current progress reproducing AntBO with Absolut on the antibody-antigen benchmark.
+
+The current goal is:
+
 ```text
 1 seed × 158 antigens × 200 BO iterations
 ```
 
+This run is mainly used as a full-pipeline check. It verifies that the AntBO code, Absolut evaluator, antigen list, structure files, GPU environment, and result-saving process can work together. 
 
+## 1. Paths
 
-## 2. 服务器与主要路径
-
-服务器登录后，主要工作目录如下：
+Main project directory:
 
 ```text
-总项目路径：
 /mnt/data0/shared/AntBO
+```
 
-AntBO 路径：
+AntBO code:
+
+```text
 /mnt/data0/shared/AntBO/HEBO/AntBO
+```
 
-Absolut 路径：
+Absolut directory:
+
+```text
 /mnt/data0/shared/AntBO/Absolut
+```
 
-目前的结果路径：
+Main result directory:
+
+```text
 /mnt/data0/shared/AntBO/HEBO/AntBO/results/BO_transformed_overlap
 ```
 
-Conda 环境：
+Conda environment:
 
 ```bash
 conda activate DGM
 ```
 
-GPU 设置：
+GPU used for the current run:
 
 ```bash
 export CUDA_VISIBLE_DEVICES=2
 ```
 
+## 2. Config
 
-## 3. 重要配置文件
-
-AntBO 配置文件：
+The main config file is:
 
 ```text
 /mnt/data0/shared/AntBO/HEBO/AntBO/bo/config.yaml
 ```
 
-当前关键配置应为：
+Important settings:
 
 ```yaml
 device: cuda
@@ -56,37 +64,35 @@ max_iters: 200
 save_path: /mnt/data0/shared/AntBO/HEBO/AntBO/results
 ```
 
-Absolut 路径应指向：
+The Absolut path should point to:
 
 ```yaml
 path: /mnt/data0/shared/AntBO/Absolut
 ```
 
-注意：`save_path` 必须使用绝对路径，否则程序可能把结果错误保存到 Absolut 目录下。
+One important fix was changing `save_path` from a relative path to an absolute path. Otherwise, after Absolut is called, results may be saved under the wrong directory.
 
----
+## 3. Antigen Lists
 
-## 4. Antigen list
-
-原始全量 antigen 文件为：
+The original full antigen file is:
 
 ```text
 /mnt/data0/shared/AntBO/HEBO/AntBO/dataloader/antigens_all.txt
 ```
 
-该文件有重复项。已整理出 158 个唯一 antigen：
+This file contains duplicated antigen IDs. I created a cleaned list with 158 unique antigens:
 
 ```text
 /mnt/data0/shared/AntBO/antigens_all_unique_158.txt
 ```
 
-12 个 core antigens 文件为：
+The 12 core antigens are listed in:
 
 ```text
 /mnt/data0/shared/AntBO/HEBO/AntBO/dataloader/core_antigens.txt
 ```
 
-core antigens 包括：
+The 12 core antigens are:
 
 ```text
 1ADQ_A
@@ -102,44 +108,41 @@ core antigens 包括：
 2JEL_P
 2DD8_S
 ```
+These 12 core antigens have already completed for seed 42.
 
-目前 12 个 core antigens 已经全部完成 seed 42 的运行。
 
+## 4. Current Status
 
-## 5. 当前运行状态
-
-已经完成并保存的前两个 antigen：
+The run started from the cleaned 158-antigen list. The first two antigens were completed first:
 
 ```text
 1ADQ_A
 1FBI_X
 ```
 
-对应原始 log：
+Their log is:
 
 ```text
 /mnt/data0/shared/AntBO/full_158_1seed_gpu.log
 ```
 
-后来从 `1H0D_C` 开始继续运行，当前继续运行的 list 为：
+After that, the run was continued from `1H0D_C`. The continuation antigen list is:
 
 ```text
 /mnt/data0/shared/AntBO/antigens_158_from_1H0D_C.txt
 ```
 
-当前继续运行的 log 为：
+The continuation log is:
 
 ```text
 /mnt/data0/shared/AntBO/full_158_1seed_from_1H0D_C.log
 ```
+When continuing the run, use `tee -a` so the existing log is appended instead of overwritten.
 
-注意：后续继续跑时建议使用 `tee -a`，避免覆盖已有 log。
 
----
+## 5. Run Command
 
-## 6. 正式运行命令
-
-从当前 list 继续运行：
+To continue from the current antigen list:
 
 ```bash
 cd /mnt/data0/shared/AntBO/HEBO/AntBO
@@ -154,39 +157,37 @@ python -u ./bo/main.py \
   2>&1 | tee -a /mnt/data0/shared/AntBO/full_158_1seed_from_1H0D_C.log
 ```
 
-如果重新从完整 158 antigen list 开始运行，则使用：
-
-```bash
---antigens_file /mnt/data0/shared/AntBO/antigens_all_unique_158.txt
-```
-
-但目前不建议从头重跑，因为已有部分 antigen 已完成。
-
----
-
-
-
-## 8. 输出结果
-
-每个 antigen 的结果保存在：
+If starting over from the full cleaned antigen list, use:
 
 ```text
-/mnt/data0/shared/AntBO/HEBO/AntBO/results/BO_transformed_overlap/
+/mnt/data0/shared/AntBO/antigens_all_unique_158.txt
 ```
 
-每个 antigen 有一个独立文件夹，例如：
+However, this is not recommended unless intentionally rerunning already completed antigens.
+
+
+
+## 6. Results
+
+Results are saved under:
 
 ```text
-antigen_1ADQ_A_kernel_transformed_overlap_search-strat_local_seed_42_cdr_constraint_True_seqlen_11
+/mnt/data0/shared/AntBO/HEBO/AntBO/results/BO_transformed_overlap
 ```
 
-每个文件夹中主要结果文件为：
+Each completed antigen has its own folder. The folder name usually follows this pattern:
+
+```text
+antigen_<ANTIGEN_ID>_kernel_transformed_overlap_search-strat_local_seed_42_cdr_constraint_True_seqlen_11
+```
+
+The main output file is:
 
 ```text
 results.csv
 ```
 
-同时还会保存随机状态和 optimizer 状态：
+The folder also contains saved random states and optimizer state:
 
 ```text
 torch_rd_state.pt
@@ -195,115 +196,124 @@ np_rd_state.pkl
 optim.pkl
 ```
 
-快速查看已有结果文件：
 
-```bash
-find /mnt/data0/shared/AntBO/HEBO/AntBO/results/BO_transformed_overlap \
-  -name results.csv | wc -l
+## 7. Completed Antigens So Far
+
+At the time of this handoff, the following 25 antigens have completed for seed 42:
+
+```text
+1ADQ_A
+1FBI_X
+1FNS_A
+1FSK_A
+1H0D_C
+1NSN_S
+1OB1_C
+1OSP_O
+1PKQ_J
+1RJL_C
+1S78_B
+1TQB_A
+1WEJ_F
+1YJD_C
+1ZTX_E
+2B2X_A
+2DD8_S
+2HFG_R
+2IH3_C
+2JEL_P
+2R29_A
+2R56_A
+2YPV_A
+3RAJ_A
+3VRL_C
 ```
 
-查看某个 antigen 的结果：
+The 12 core antigens are included in this completed set.
 
-```bash
-head -20 /mnt/data0/shared/AntBO/HEBO/AntBO/results/BO_transformed_overlap/antigen_1ADQ_A_kernel_transformed_overlap_search-strat_local_seed_42_cdr_constraint_True_seqlen_11/results.csv
+
+## 8. Example Antigen: `2R29_A`
+
+For a single completed antigen, the related files are stored in several places.
+
+### Antigen ID
+
+```text
+2R29_A
 ```
 
----
+### Result folder
 
-## 9. 已遇到并解决的问题
+The result folder for this antigen should be found under the main result directory:
 
-### 1. `save_path` 相对路径问题
+```text
+/mnt/data0/shared/AntBO/HEBO/AntBO/results/BO_transformed_overlap/antigen_2R29_A_kernel_transformed_overlap_search-strat_local_seed_42_cdr_constraint_True_seqlen_11
+```
 
-原本 `save_path: ./results` 会导致结果保存到错误目录。已改成绝对路径：
+### Main result file
+
+Inside the antigen result folder, the main output file is:
+
+```text
+results.csv
+```
+
+This file records the sequences evaluated during BO and the corresponding scores.
+
+### Saved state files
+
+The same folder also contains files for restoring or inspecting the run state:
+
+```text
+torch_rd_state.pt
+random_rd_state.pkl
+np_rd_state.pkl
+optim.pkl
+```
+
+
+## 9. Issues Encountered
+
+### Relative `save_path`
+
+Originally, `save_path` was relative. This caused results to be saved in the wrong place after Absolut was called.
+
+It has been changed to:
 
 ```text
 /mnt/data0/shared/AntBO/HEBO/AntBO/results
 ```
 
-### 2. Absolut structure 文件找不到
+### Missing Absolut structure files
 
-错误形式：
+If the log repeatedly shows:
 
 ```text
 (2, 'No such file or directory')
-Starting Trial 1 for antigen XXXX
+Starting Trial 1 for antigen ANTIGEN_ID
 ```
 
-原因通常是对应 antigen 的 structure 文件不在 Absolut 根目录。
+it usually means Absolut cannot find the required structure file.
 
-解决方法：
+To check which file is needed:
 
 ```bash
 cd /mnt/data0/shared/AntBO/Absolut
-
 ./src/bin/Absolut info_filenames ANTIGEN_ID
 ```
 
-该命令会显示需要的 structure 文件名和下载链接。如果缺失，则下载并解压。
+If the file is missing, download it using the `curl` command printed by Absolut and unzip it.
 
-如果 structure 文件位于：
 
-```text
-/mnt/data0/shared/AntBO/Absolut/src/structures/
-```
+## 10. Resource Notes
 
-但程序在 Absolut 根目录找不到，可以建立软链接：
-
-```bash
-cd /mnt/data0/shared/AntBO/Absolut
-
-for f in /mnt/data0/shared/AntBO/Absolut/src/structures/*Structures.txt
-do
-  ln -sf "$f" "$(basename "$f")"
-done
-```
-
-目前 Absolut 根目录下已经能看到 222 个 structure 文件。
-
-### 3. 已单独补过的 antigen
-
-运行中曾因缺 structure 文件卡住过：
+Observed runtime varies by antigen. For example:
 
 ```text
-1FBI_X
-1H0D_C
-2HFG_R
+1ADQ_A: about 63.5 min
+1FBI_X: about 36.1 min
 ```
 
-其中 `2HFG_R` 需要的文件为：
+A single AntBO process used relatively little GPU memory, around 1–2 GB in my run. GPU utilization was not very high, so the bottleneck is likely not pure GPU compute. Runtime likely also depends on Absolut evaluation, CPU/I/O, and the sequential BO loop.
 
-```text
-SULDRUDURRUSULDDLRDRLRLRRL-10-11-0Structures.txt
-```
-
-已下载并解压成功。
-
----
-
-## 10. 资源需求估计
-
-当前运行规模：
-
-```text
-1 seed × 158 antigens × 200 iterations
-```
-
-单个 antigen 的运行时间差异较大。
-
-```text
-1ADQ_A：约 63.5 分钟
-1FBI_X：约 36.1 分钟
-```
-
-GPU 使用情况：
-
-```text
-单进程显存占用较小，约 1–2 GB
-GPU 利用率不高
-```
-
-主要耗时可能来自 Absolut black-box evaluation、
-
-
-
-
+If more speed is needed, the remaining antigen list can be split across multiple GPUs. In that case, each process should use a different antigen list and a different log file.
